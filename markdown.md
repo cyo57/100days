@@ -148,3 +148,144 @@ if __name__ == '__main__':
 ```
 
 因为多个线程可以共享进程的内存空间, 因此实现通信比多进程更容易, 例如共享全局变量. 但多个线程共享一个**资源**时, 很可能产生不可控的结果, 从而程序失效甚至崩溃. 如果一个资源呗多个线程竞争 (临界资源) 时, 对"临界资源"需要加以保护, 否则资源将处于混乱
+
+可以通过锁来防止竞争, 只有获取到锁的线程才能执行
+
+```python
+from time import sleep
+from threading import Thread, Lock
+
+
+class Account(object):
+
+    def __init__(self):
+        self._balance = 0
+        self._lock = Lock()
+
+    def deposit(self, money):
+        # 必须获取到锁才能执行
+        self._lock.acquire()
+        try:
+            # 计算存款后的余额
+            new_balance = self._balance + money
+            # 模拟受理存款业务需要0.01秒的时间
+            sleep(0.01)
+            # 修改账户余额
+            self._balance = new_balance
+        finally:
+            # 释放锁
+            self._lock.release()
+
+    @property
+    def balance(self):
+        return self._balance
+
+
+class AddMoneyThread(Thread):
+
+    def __init__(self, account, money):
+        super().__init__()
+        self._account = account
+        self._money = money
+
+    def run(self):
+        self._account.deposit(self._money)
+
+
+def main():
+    account = Account()
+    threads = []
+    # 创建100个存款的线程向同一个账户中存钱
+    for _ in range(100):
+        t = AddMoneyThread(account, 1)
+        threads.append(t)
+        t.start()
+    # 等所有存款的线程都执行完毕
+    for t in threads:
+        t.join()
+    print('账户余额为: ￥%d元' % account.balance)
+
+
+if __name__ == '__main__':
+    main()
+```
+
+### 网络编程入门
+
+#### TCP/IP 模型
+网络通信协议通常由*互联网工程任务组* (IETF) 制定的. 所谓"协议"就是通信计算机双方遵从的约定, 例如建立连接 & 互相识别等. 网络协议三要素是 语法& 语义& 时序.
+构成我们今天使用的Internet的基础是TCP/IP协议族, 就是一些列协议机器构成的通信模型, 称之为TCP/IP模型. 层次自底向上依次是 网络接口层& 网络层& 传输层& 应用层.
+
+TCP全程传输控制协议, 它基于IP提供的寻址和路由服务而建立起来的端到端可靠传输的协议, TCP向使用者承诺三件事
+
+- 数据不传丢, 不传错. (利用握手& 校验& 重传机制)
+- 流量控制 (通过滑动窗口匹配数据发送者和接受者之间的传输速度)
+- 拥塞控制 (通过RTT时间以及对滑动窗口的控制缓解网络拥塞)
+
+#### 网络应用模式
+
+- C/S 和 B/S, 此处C指Client, 通常指某个应用程序. B指Browser. 通过C或B都可以实现对S (Server) 的访问
+- 去中心化, 通常没用固定的服务器或客户端, 所有应用的使用者都可以作为资源提供者或访问者
+
+#### HTTP (超文本传输协议)
+
+全程 Hyper-Text Transfer Proctol, Wiki Pedia上的解释是: 
+
+简单来说, 通过HTTP我们可以获取网络上的 (基于字符) 资源, 开发中经会用到的网络API就基于HTTP来实现传输
+
+#### JSON
+
+JavaScript Object Notation 是一种轻量级的数据交换语言, 以易于人类阅读的文字 (文本) 为基础, 用来传输属性值或序列性的值组成的数据对象. 由于JSON是纯文本, 和XML一样适用于异构系统间的数据交换, 但JSON显然比XML更加的轻便和优雅
+
+### requests库
+
+基于HTTP协议使用网络的第三方库, 其官网介绍: "Requests是惟一的一个非转基因的Python HTTP库, 人类可以安全享用." 总之, 使用requests可以方便的使用HTTP, 避免安全缺陷& 冗余代码& 重复发明轮子
+
+`pip install requests`
+
+如果用PyCharm作为IDE, 可以通过代码修复功能自动下载安装库
+
+我们简单写了一个获取QQ信息的程序
+
+```python
+from threading import Thread
+import requests
+
+class DownloadHanlder(Thread):
+    def __init__(self, url):
+        super().__init__()
+        self.url = url
+    
+    def run(self):
+        filename = self.url[self.url.rfind('/'+1)]
+        resp = requests.get(self.url)
+        with open('~/' + filename, 'wb') as f:
+            f.write(resp.content)
+
+
+class GetHttp(Thread):
+    def __init__(self, url):
+        super().__init__()
+        self.url = url
+    
+    def run(self):
+        resp = requests.get(self.url)
+        print(resp.content)
+
+
+def main():
+    qqnum = '1342009839'
+    url = 'https://api.muxiaoguo.cn/api/QqInfo?qq=' + qqnum
+    resp = GetHttp(url).start()
+
+if __name__ == '__main__':
+    main()
+```
+
+
+
+#### TCP套接字
+
+就是使用TCP协议提供的传输服务来实现网络通信的编程接口. 在Py中创建socket对象并制定type属性为SOCK_STREAM使用TCP套接字. 由于一台主机可能有多个IP, 且配置多个不同服务, 所以作为服务端, 需要创建套接字对象后绑定到指定的IP和端口. 此处端口并非是物理设备, 而是IP地址的扩展, 区分不同的服务. 例如HTTP跟80绑定, MySQL默认绑定3306. 端口的范围是0~65535, 而1024以下的称之为"著名端口",  (例如FTP& HTTP& SMTP) 等等.
+
+下面代码实现一个提供日期的服务器
