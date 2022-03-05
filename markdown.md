@@ -469,3 +469,99 @@ print(priceNew)
 ```
 
 #### 嵌套的列表
+
+```python
+# 嵌套列表
+def b():
+    names = ['cyo57', 'hxert', '赵云', '关羽']
+    courses = ['语文', '数学', '英语']
+    # 录入四名学生 三门课的成绩
+    scores = [[None] * len(courses) for _ in range(len(names))]
+    for row, name in enumerate(names):
+        for col, course in enumerate(scores):
+            scores[row][col] = float(input(f'输入{name}的{course}成绩: '))
+```
+
+#### heapq模块 堆排序
+
+```python
+# heapq模块 (堆排序)
+# 从列表中找出最大或最小的N个元素
+# 解构堆(大根堆/小根堆)
+import heapq
+def c():
+    list1 = [34, 56, 24, 76, 27, 84, 25, 74, 90]
+    list2 = [
+        {'name': 'A', 'shares': 100, 'price': 90},
+        {'name': 'B', 'shares': 200, 'price': 60},
+        {'name': 'C', 'shares': 300, 'price': 70}
+    ]
+    print(heapq.nlargest(100, list1))
+    print(heapq.nsmallest(3, list1))
+    print(heapq.nlargest(3, list2, key=lambda x: x['price']))
+```
+
+#### 迭代工具 itertools模块
+
+```python
+# 迭代工具模块
+import itertools
+def d():
+    # 产生ABCD全排列
+    itertools.permutations('ABCD')	#(A,B,C,D) (A,B,D,C) (A,C,B,D)
+    # 产生ABCDE五选三组合
+    itertools.combinations('ABCDE', 3) #(A,B,C) (A,B,D) (A,B,E)
+    # 产生ABCD和123的笛卡尔积
+    itertools.product('ABCD', '123') #(A,1) (A,2) (A,3) (B,1)
+    # 产生ABC的无限序列循环
+    itertools.cycle(('A', 'B', 'C')) #A B C A B C
+
+    for _ in itertools.product('ABCD', '123'):
+        print(_)
+```
+
+#### collections模块
+
+```python
+from collections import Counter
+def e():
+    '''常用的类
+    namedtuple: 接受类型的名称和属性列表创建一个类
+    deque: 
+    Counter: dict的子类, 键是元素, 值是元素的计数, 他的most_common()方法可以获取最高频率的元素
+    OrderDict: dict的子类, 记录键值对插入的顺序
+    defaultdict: 类似字典类型, 但可以通过默认的工行函数获得键对应的默认值
+    '''
+    words = [
+        'apple', 'bag', 'cat', 'dog', 'elephant', 'flag', 'glass', 'happy', 'italy',
+        'jack', 'cat', 'lens'
+    ]
+    counter = Counter(words)
+    # 获取前三个最高频率的元素
+    print(counter.most_common(3))
+```
+
+### 数据结构和算法
+
+算法: 解决问题的方法和步骤
+
+评价算法好坏: 渐进时间复杂度和渐进空间复杂度
+
+渐进时间复杂度的大O标记:
+
+#### 简单选择排序
+
+```python
+def select_sort(items, comp=lambda x, y: x < y):
+    '''简单选择排序'''
+    # 复制新列表
+    items = items[:]
+    for i in range(len(items) - 1):
+        min_index = i
+        for j in range(i + 1, len(items)):
+            if comp(items[j], items[min_index]):
+                min_index = j
+        items[i], items[min_index] = items[min_index], items[i]
+    return items
+```
+
