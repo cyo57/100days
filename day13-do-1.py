@@ -5,7 +5,6 @@ from threading import Thread
 
 
 def main():
-
     class DownloadTaskHandler(Thread):
 
         def run(self):

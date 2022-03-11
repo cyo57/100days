@@ -551,6 +551,9 @@ def e():
 
 #### 简单选择排序
 
+外循环: 列表的元素长度
+内循环: 
+
 ```python
 def select_sort(items, comp=lambda x, y: x < y):
     '''简单选择排序'''

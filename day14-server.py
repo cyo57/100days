@@ -2,11 +2,11 @@ from socket import socket, SOCK_STREAM, AF_INET
 from datetime import datetime
 from threading import Thread
 
+
 def _log(s):
     _isLog = True
     if _isLog:
         print(s)
-
 
 
 def main():
@@ -27,16 +27,16 @@ def main():
         # 发送数据
         client.send(str(datetime.now()).encode('utf8'))
 
+
 def main_thread():
     class DateHandler(Thread):
         def __init__(self, client) -> None:
             super().__init__()
             self.client = client
-        
+
         def run(self):
             self.client.send(str(datetime.now()).encode('utf8'))
             self.client.close
-
 
     server = socket()
     server.bind(('192.168.31.9', 6666))
@@ -49,5 +49,5 @@ def main_thread():
 
 
 if __name__ == '__main__':
-    #main()
+    # main()
     main_thread()
