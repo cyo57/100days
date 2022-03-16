@@ -621,16 +621,143 @@ def exhaustive_b():
 > | 书     | 10   | 1    |
 > | 油画   | 90   | 9    |
 >
-> 
+
+```python
+def greedy_a():
+    class Thing(object):
+        '''物品'''
+
+        def __init__(self, name, price, weight):
+            self.name = name
+            self.weight = weight
+            self.price = price
+
+        @property
+        def value(self):
+            '''性价比'''
+            return self.price / self.weight
+
+    def input_thing():
+        name_str, price_str, weight_str = input('名字 价格 重量:').split()
+        return name_str, int(price_str), int(weight_str)
+
+    def main():
+        max_weight, num_of_things = map(int, input('背包重量容量 可用物品件数:').split())
+        all_things = []
+        for _ in range(num_of_things):
+            all_things.append(Thing(*input_thing()))  # 带*会翻译成元组
+        all_things.sort(key=lambda x: x.value, reverse=True)
+        total_weight = 0
+        total_price = 0
+        for thing in all_things:
+            if total_weight + thing.weight <= max_weight:
+                print(f'小偷拿走了{thing.name} 性价比{thing.value}')
+                total_weight += thing.weight
+                total_price += thing.price
+        print(f'总价值{total_price}元, 重{total_weight}')
+
+    main()
+```
+
+
 
 #### 分治法
 
 将复杂的问题分成两个或更多相同或相似的子问题, 再把子问题分成更小的子问题, 知道可以直接求解
 
+> [快速排序](https://zh.m.wikipedia.org/zh/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F)
+
 #### 回溯法
 
 试探法, 按选优条件向前搜索, 当到达某一步发现原先选择不优或达不到目标时, 退回一步重新选择
 
+> [骑士巡逻](https://zh.m.wikipedia.org/zh/%E9%A8%8E%E5%A3%AB%E5%B7%A1%E9%82%8F)
+
 #### 动态规划
 
 待求解分解成若干个子问题, 先求解病保存这些子问题的解, 避免产生重复运算
+
+### 函数的使用方式
+
+- 将函数视为一等公民
+
+  - 可以复制给变量
+  - 可以作为函数的参数
+  - 可以作为函数的返回值
+
+- 高阶函数的用法( `filter`, `map` 以及替代品)
+
+  ```python
+  items = list(map(lambda = x: x ** 2, filter(lambda x: x % 2, range(1, 10))))
+  items = [x ** 2 for x in range(1, 10) if x % 2]
+  ```
+
+- 未知参数, 可变参数, 关键字参数, 命名关键字参数
+
+- 参数的原信息 (代码可读性)
+
+- 匿名函数和内联函数的用法
+
+- 闭包和作用域
+
+  - Python搜索变量的LEGB顺数 (Local >>> Embedded >>> Global >>> Built-in)
+  - `global` 和 `nonlocal` 的作用
+    `gloabl`: 声明或定义全局变量 (使用现有的全局作用域的变量, 或定义一个变量放到全局作用域)
+    `nonlocal`: 声明使用嵌套作用域的变量 (嵌套作用域必须存在该变量)
+
+- 装饰器函数 (使用和取消)
+
+### 面向对象相关
+
+#### 三大支柱: 封装, 继承, 多态
+
+#### 类和类的关系
+
+- is-a: 继承
+- has-a: 关联 / 聚合 / 合成
+- use-a: 依赖
+
+```python
+# 扑克游戏
+```
+
+#### 对象的复制 (深辅助/深拷贝/深度克隆和浅复制/浅拷贝/影子克隆)
+
+#### 垃圾回收 / 循环引用 / 弱引用
+
+Python使用了自动化内存管理, 这种管理机制以**引用计数**为基础, 同事也引入了**标记-清除**和**分代收集**两种机制为辅的策略
+
+```c++
+typedef struct _object {
+  /* 引用计数 */
+  int ob_refcnt;
+  /* 对象指针 */
+  struct _typeobject *ob_type;
+} PyObject;
+```
+
+```c#
+/* 增加引用计数的宏定义 */
+#define Py_INCREF(op) ((op)->ob_refcnt++)
+/* 减少引用计数的宏定义 */
+#define Py_RECREF(op) \ //减少计数
+	if (--(op)->ob_refcnt != 0) \
+		; \
+  else \
+    __Py_Dealloc((PyObject *)(op))
+```
+
+导致引用计数+1的情况:
+
+- 对象被创建, 例如`a = 23`
+- 对象呗引用, 例如`b = a`
+- 对象被作为参数, 传入到一个函数中, 例如`fuc(a)`
+- 对象作为一个元素, 存储在容器中, 例如`list = [a, b]`
+
+导致引用计数-1的情况:
+
+- 对象的别名被显式销毁, 例如`del a`
+- 对象的别名被赋予新对象, 例如`a = 24`
+- 一个对象离开作用域, 例如函数f执行完毕时, f函数中的局部变量 (全局不会)
+- 对象所在的容器被销毁, 或从容器删除对象
+
